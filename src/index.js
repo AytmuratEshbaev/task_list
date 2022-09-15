@@ -6,90 +6,67 @@ class Block extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      toDos: [],
-      newToDo: ''
+      do: [],
+      did: []
     }
-    this.changeValue = this.changeValue.bind(this);
-    this.addToDo = this.addToDo.bind(this);
-    this.handleClick = this.handleClick.bind(this);
-    this.doneChecked = this.doneChecked.bind(this);
-    this.removeToDo = this.removeToDo.bind(this);
+    this.addTask = this.addTask.bind(this);
+    this.changeState = this.changeState.bind(this);
   }
 
-  removeToDo(e){
-    let val = e.target.previousSibling.textContent;
-    let toDos = this.state.toDos;
-    toDos = toDos.filter(toDo => toDo.text !== val);
+
+
+  addTask(e) {
+    let value = e.target.value;
+    let doTasks = this.state.do;
+    if (e.key === 'Enter' && value !== '') {
+      doTasks.push(value);
+      this.setState({
+        do: doTasks
+      })
+      e.target.value="";
+    }
+  }
+
+
+  changeState(e) {
+    let doTasks = this.state.do;
+    let didTasks = this.state.did;
+    let value = e.target.nextSibling.textContent;
+    if (e.target.checked) {
+      doTasks = doTasks.filter(task => task !== value);
+      didTasks.unshift(value);
+    }
+    else {
+      didTasks = didTasks.filter(task => task !== value);
+      doTasks.unshift(value);
+    }
+
     this.setState({
-      toDos: toDos
+      do: doTasks,
+      did: didTasks
     })
   }
 
-  addToDo(e) {
-    e.preventDefault();
-    let toDo = {}, toDos = this.state.toDos;
-    toDo.text = this.state.newToDo;
-    toDo.done = false;
-    toDo.id = !toDos ? toDos[toDos.length - 1].id + 1 : 0;
-    toDos.push(toDo);
-    this.setState({
-      toDos: toDos,
-      newToDo: ""
-    })
-    e.target.closest('form').reset();
+  showTasks(tasks, value) {
+    return tasks.map((task, index) =>
+      <li key={index}>
+        <input type="checkbox" checked={value} onChange={this.changeState} />
+        <span>{task}</span>
+      </li>
+    )
   }
-
-  changeValue(e) {
-    this.setState({
-      newToDo: e.target.value
-    })
-  }
-
-  doneChecked(e) {
-    let checkbox = e.target;
-    let nextElement = checkbox.nextSibling;
-    let val = nextElement.textContent;
-    let toDos = this.state.toDos;
-    toDos.forEach(toDo => {
-      if (toDo.text === val) {
-        toDo.done = !toDo.done;
-        nextElement.style.textDecoration = toDo.done ? 'line-through' : 'none';
-      }
-    })
-  }
-
-  handleClick(e) {
-    let currentElement = e.target;
-    let val = currentElement.textContent;
-    let toDos = this.state.toDos;
-    toDos.forEach(toDo => {
-      if (toDo.text === val) {
-        toDo.done = !toDo.done;
-        currentElement.previousSibling.checked = toDo.done;
-      }
-    })
-    this.setState({
-      toDos: toDos
-    })
-  }
-
   render() {
     return (
       <div className='wrapper'>
-        <h1 className='wrapper__title'>My To Do List</h1>
-        <ul className='toDoList'>
-          {this.state.toDos.map((toDo, index) =>
-            <li className="todo" key={index}>
-              <input type="checkbox" defaultChecked={toDo.done} onInput={this.doneChecked} />
-              <p onClick={this.handleClick} style={{ textDecoration: toDo.done ? 'line-through' : 'none' }}>{toDo.text}</p>
-              <button onClick={this.removeToDo}>x</button>
-            </li>
-          )}
-        </ul>
-        <form>
-          <input type="text" onChange={this.changeValue} />
-          <button onClick={this.addToDo} disabled={!this.state.newToDo}>Add #{this.state.toDos.length + 1}</button>
-        </form>
+        <input type='text' onKeyPress={this.addTask} />
+        <div className='do'>
+          <h4>Нужно сделать</h4>
+          <ul>{this.showTasks(this.state.do, false)}</ul>
+        </div>
+        <div className='did'>
+          <h4>Выполнено</h4>
+          <ul>{this.showTasks(this.state.did, true)}</ul>
+        </div>
       </div>
     )
   }
